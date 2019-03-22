@@ -6,20 +6,27 @@ using UnityEngine;
 [RequireComponent(typeof(Rigidbody2D))]
 public class NinjaController : MonoBehaviour, IAnimationCompleted
 {
-	public float speed = 5.0f;
-	public float movementThreshold = 0.5f;
+    public GameObject fireBall;
+    public float speed = 5.0f;
+    public float movementThreshold = 0.5f;
 
-	private Vector2 inputDirection;
-	private Rigidbody2D _rigidbody2D;
-	private Animator _animator;
-    [SerializeField]private bool attack = false;
+    [HideInInspector]
+    public Vector2 inputDirection;
+    private Rigidbody2D _rigidbody2D;
+    private Animator _animator;
+    [SerializeField] private bool attack = false;
 
+    private float dragDistance;
+    private Vector3 fp;   //First touch position
+    private Vector3 lp;   //Last touch position
 
     private void Start()
-	{
-		_rigidbody2D = GetComponent<Rigidbody2D>();
-		_animator = GetComponent<Animator>();
-	}
+    {
+        _rigidbody2D = GetComponent<Rigidbody2D>();
+        _animator = GetComponent<Animator>();
+
+        dragDistance = Screen.height * 15 / 100;
+    }
 
     public void AnimationCompleted(int shortHashName)
     {
@@ -38,8 +45,8 @@ public class NinjaController : MonoBehaviour, IAnimationCompleted
         else if (attack == false)
         {
 
-            inputDirection.x = Input.GetAxis("Horizontal");
-            inputDirection.y = Input.GetAxis("Vertical");
+            //inputDirection.x = Input.GetAxis("Horizontal");
+            //inputDirection.y = Input.GetAxis("Vertical");
 
             if (inputDirection.magnitude > movementThreshold)
             {
@@ -56,5 +63,88 @@ public class NinjaController : MonoBehaviour, IAnimationCompleted
                 _animator.SetBool("isWalking", false);
             }
         }
-	}
+
+        if (Input.touchCount == 1)
+        {
+            Touch touch = Input.GetTouch(0);
+            if (touch.phase == TouchPhase.Began)
+            {
+                fp = touch.position;
+                lp = touch.position;
+            }
+            else if (touch.phase == TouchPhase.Moved)
+            {
+                lp = touch.position;
+            }
+            else if (touch.phase == TouchPhase.Ended)
+            {
+                lp = touch.position;
+
+                if (Mathf.Abs(lp.x - fp.x) > dragDistance || Mathf.Abs(lp.y - fp.y) > dragDistance)
+                {
+                    SwipeAttack();
+                }
+            }
+        }
+    }
+
+    public void SwipeAttack()
+    {
+        GameObject gObj = Instantiate(fireBall, transform.position, Quaternion.identity);
+        FireBall fb = gObj.GetComponent<FireBall>();
+
+        if (Mathf.Abs(lp.x - fp.x) > Mathf.Abs(lp.y - fp.y))
+        {
+            if (lp.x > fp.x)
+            {
+                // Swiped Right
+                fb.direction = FireBall.eDirection.RIGHT;
+            }
+            else
+            {
+                // Swiped Left
+                fb.direction = FireBall.eDirection.LEFT;
+            }
+        }
+        else
+        {
+            if (lp.y > fp.y)
+            {
+                // Swiped Up
+                fb.direction = FireBall.eDirection.UP;
+            }
+            else
+            {
+                // Swiped Down
+                fb.direction = FireBall.eDirection.DOWN;
+            }
+        }
+    }
+
+    private void Fire()
+    {
+        GameObject gObj = Instantiate(fireBall, transform.position, Quaternion.identity);
+        FireBall fb = gObj.GetComponent<FireBall>();
+
+        if (_animator.GetFloat("inputX") > 0.0f)
+        {
+            fb.direction = FireBall.eDirection.RIGHT;
+        }
+        else if (_animator.GetFloat("inputX") < 0.0f)
+        {
+            fb.direction = FireBall.eDirection.LEFT;
+        }
+        else if (_animator.GetFloat("inputY") > 0.0f)
+        {
+            fb.direction = FireBall.eDirection.UP;
+        }
+        else if (_animator.GetFloat("inputY") < 0.0f)
+        {
+            fb.direction = FireBall.eDirection.DOWN;
+        }
+        else
+        {
+            fb.direction = FireBall.eDirection.DOWN;
+        }
+    }
 }
