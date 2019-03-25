@@ -120,31 +120,4 @@ public class NinjaController : MonoBehaviour, IAnimationCompleted
             }
         }
     }
-
-    private void Fire()
-    {
-        GameObject gObj = Instantiate(fireBall, transform.position, Quaternion.identity);
-        FireBall fb = gObj.GetComponent<FireBall>();
-
-        if (_animator.GetFloat("inputX") > 0.0f)
-        {
-            fb.direction = FireBall.eDirection.RIGHT;
-        }
-        else if (_animator.GetFloat("inputX") < 0.0f)
-        {
-            fb.direction = FireBall.eDirection.LEFT;
-        }
-        else if (_animator.GetFloat("inputY") > 0.0f)
-        {
-            fb.direction = FireBall.eDirection.UP;
-        }
-        else if (_animator.GetFloat("inputY") < 0.0f)
-        {
-            fb.direction = FireBall.eDirection.DOWN;
-        }
-        else
-        {
-            fb.direction = FireBall.eDirection.DOWN;
-        }
-    }
 }
